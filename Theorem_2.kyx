@@ -1,0 +1,111 @@
+ArchiveEntry "Theorem 2"
+Description "".
+
+Definitions
+  Bool Zeta(Real x, Real e, Real a);           /* Loop invariant */
+  Bool Env(Real x, Real e, Real a);            /* Environment assumptions */
+  Bool Sys(Real x, Real e, Real a);            /* System assumptions */
+  Bool Ctrl(Real x, Real e, Real a);           /* Control law */
+  Bool Plant(Real x, Real e, Real a, Real t);  /* Evolution domain constraint */
+  Bool R(Real e0, Real e);                     /* Env environment constraints */
+  Real f(Real x);                              /* Differential evolution */
+  Real T;                                      /* Sampling time */
+  HP plant ::= {t:=0; {x' = f(x), t' = 1 & (Plant(x, e, a, t) & t <= T)}};
+End.
+
+ProgramVariables
+  Real x, e, e0, a, a1;   /* The state. */
+End.
+
+Problem
+\exists a1 \exists x \exists e \exists e0 (
+    Zeta(x, e0, a1) & R(e0, e) & <a:=*; ?Sys(x, e, a);> (!Zeta(x, e, a))  /* There exists one execution of Sys that breaks the invariant */
+    
+& \forall a (!Zeta(x, e, a) -> <plant;> (!Zeta(x, e, a1)))
+  /* If there is an action that does not maintain the invariant in one step, then there is some plant evolution that does not fulfill the invariant. */
+)
+& \forall x, e0, e, a1 (Zeta(x, e0, a1) & R(e0, e) -> <e0:=*; ?Env(x, e0, a1);> (e0 = e))
+  /* Environment respects the desired evolution of constraints */
+->
+\exists x, e, a1 (
+    Zeta(x, e, a1) & <e:=*; ?Env(x, e, a1); a:=*; ?Sys(x, e, a); plant;> (!Zeta(x, e, a1))  /* Controller cannot be removed */
+    )
+End.
+
+Tactic "Theorem 2: Proof"
+implyR('R=="\exists a1 \exists x \exists e \exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><plant{|^@|};>(!Zeta(x,e,a1))))&\forall a1 \forall e \forall e0 \forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)->\exists a1 \exists e \exists x (Zeta(x,e,a1)&<e:=*;?Env(x,e,a1);a:=*;?Sys(x,e,a);plant{|^@|};>(!Zeta(x,e,a1)))");
+andL('L=="\exists a1 \exists x \exists e \exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><plant{|^@|};>(!Zeta(x,e,a1))))&\forall a1 \forall e \forall e0 \forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)");
+existsL('L=="\exists a1 \exists x \exists e \exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><plant{|^@|};>(!Zeta(x,e,a1))))");
+existsL('L=="\exists x \exists e \exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><plant{|^@|};>(!Zeta(x,e,a1))))");
+existsL('L=="\exists e \exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><plant{|^@|};>(!Zeta(x,e,a1))))");
+expand "plant";
+existsL('L=="\exists e0 (Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))))");
+andL('L=="Zeta(x,e0,a1)&R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+andL('L=="R(e0,e)&<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+andL('L=="<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))&\forall a (!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+composed('L=="<a:=*;?Sys(x,e,a);>(!Zeta(x,e,a))");
+randomd('L=="<a:=*;><?Sys(x,e,a);>(!Zeta(x,e,a))");
+existsL('L=="\exists a <?Sys(x,e,a);>(!Zeta(x,e,a))");
+testd('L=="<?Sys(x,e,a);>(!Zeta(x,e,a))");
+andL('L=="Sys(x,e,a)&!Zeta(x,e,a)");
+notL('L=="!Zeta(x,e,a)");
+allL('L=="\forall a1 \forall e \forall e0 \forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)");
+allL('L=="\forall e \forall e0 \forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)");
+allL('L=="\forall e0 \forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)");
+allL('L=="\forall x (Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e)");
+implyL('L=="Zeta(x,e0,a1)&R(e0,e)-><e0:=*;?Env(x,e0,a1);>e0=e"); <(
+  "Zeta(x,e0,a1)&R(e0,e)":
+    andR('R=="Zeta(x,e0,a1)&R(e0,e)"); <(
+      "Zeta(x,e0,a1)":
+        id,
+      "R(e0,e)":
+        id
+    ),
+  "<e0:=*;?Env(x,e0,a1);>e0=e":
+    composed('L=="<e0:=*;?Env(x,e0,a1);>e0=e");
+    randomd('L=="<e0:=*;><?Env(x,e0,a1);>e0=e");
+    existsL('L=="\exists e0 <?Env(x,e0,a1);>e0=e");
+    testd('L=="<?Env(x,e0,a1);>e0=e");
+    andL('L=="Env(x,e0,a1)&e0=e");
+    allL2R('L=="e0=e");
+    existsR('R=="\exists a1 \exists e \exists x (Zeta(x,e,a1)&<e:=*;?Env(x,e,a1);a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+    existsR("e0_0", 'R=="\exists e \exists x (Zeta(x,e,a1)&<e:=*;?Env(x,e,a1);a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+    existsR('R=="\exists x (Zeta(x,e0_0,a1)&<e0_0:=*;?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1)))");
+    andR('R=="Zeta(x,e0_0,a1)&<e0_0:=*;?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1))"); <(
+      "Zeta(x,e0_0,a1)":
+        id,
+      "<e0_0:=*;?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1))":
+        composed('R=="<e0_0:=*;?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1))");
+        randomd('R=="<e0_0:=*;><?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1))");
+        existsR("e", 'R=="\exists e0_0 <?Env(x,e0_0,a1);a:=*;?Sys(x,e0_0,a);t:=0;{x'=f(x),t'=1&Plant(x,e0_0,a,t)&t<=T()}>(!Zeta(x,e0_0,a1))");
+        composed('R=="<?Env(x,e,a1);a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+        testd('R=="<?Env(x,e,a1);><a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+        andR('R=="Env(x,e,a1)&<a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))"); <(
+          "Env(x,e,a1)":
+            id,
+          "<a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))":
+            composed('R=="<a:=*;?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+            randomd('R=="<a:=*;><?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+            existsR('R=="\exists a <?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+            composed('R=="<?Sys(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+            testd('R=="<?Sys(x,e,a);><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))");
+            andR('R=="Sys(x,e,a)&<t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))"); <(
+              "Sys(x,e,a)":
+                id,
+              "<t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))":
+                allL('L=="\forall a (!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1)))");
+                implyL('L=="!Zeta(x,e,a)-><t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))"); <(
+                  "!Zeta(x,e,a)":
+                    notR('R=="!Zeta(x,e,a)");
+                    id,
+                  "<t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}>(!Zeta(x,e,a1))":
+                    id
+                )
+            )
+        )
+    )
+)
+End.
+
+
+End.
