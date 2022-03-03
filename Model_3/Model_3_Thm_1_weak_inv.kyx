@@ -1,0 +1,27 @@
+﻿/* Exported from KeYmaera X v4.9.1 */
+
+Theorem "Model Piftalls/Model 3 and Theorem 1 with weak invariant"
+Description "Model 3 with cheating ctrl and the conjunct from Theorem 1 to identify cheating ctrl".
+
+Definitions       /* function symbols cannot change their value */
+  Real aMinN;     /* maximum braking - nominal controller */
+End.
+    
+ProgramVariables   /* program variables may change their value over time */
+  Real x;          /* position of the ego car */
+  Real v;          /* velocity of the ego car */
+  Real a;          /* acceleration of the ego car */
+  Real xCrit;      /* critical position xCrit */
+  Real xCritNext;  /* next critical position */
+End.
+
+
+Problem /* we show that !rho is valid for Model 3, thereby confirming Model 3 is susceptible to Problem 1 */
+    \exists x,v,xCrit,xCritNext(!(x<=xCrit & xCrit<=xCritNext -> <{xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}>(xCrit=xCritNext)))
+End.
+
+Tactic "Automated Proof"
+auto
+End.
+
+End.

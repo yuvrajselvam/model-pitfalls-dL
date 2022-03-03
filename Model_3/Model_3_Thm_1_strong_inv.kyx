@@ -1,0 +1,30 @@
+﻿/* Exported from KeYmaera X v4.9.1 */
+
+Theorem "Model Piftalls/Model 3 and Theorem 1 with strong invariant"
+Description "Model 3 with cheating ctrl and the conjunct from Theorem 1 to identify cheating ctrl".
+
+Definitions       /* function symbols cannot change their value */
+  Real aMinN;     /* maximum braking - nominal controller */
+End.
+    
+ProgramVariables   /* program variables may change their value over time */
+  Real x;          /* position of the ego car */
+  Real v;          /* velocity of the ego car */
+  Real a;          /* acceleration of the ego car */
+  Real xCrit;      /* critical position xCrit */
+  Real xCritNext;  /* next critical position */
+End.
+
+
+Problem /* we show that rho is valid with strong invariant */
+    \forall x,v,xCrit,xCritNext(v^2<=2*aMinN*(xCrit-x) & xCrit<=xCritNext & aMinN >0 -> <{xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}>(xCrit=xCritNext))
+End.
+
+Tactic "Proof"
+allR(1) ; allR(1) ; allR(1) ; allR(1) ; implyR(1) ; composed(1) ; randomd(1) ; existsR("xCritNext", 'R) ; testd(1) ; andR(1) ; <(
+  QE,
+  QE
+  )
+End.
+
+End.
