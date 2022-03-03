@@ -7,8 +7,6 @@ Definitions
   Bool Sys(Real x, Real e, Real a);            /* System assumptions */
   Bool Ctrl(Real x, Real e, Real a);           /* Control law */
   Bool Plant(Real x, Real e, Real a, Real t);  /* Evolution domain constraint */
-  Bool init(Real x, Real e, Real a);           /* Initial conditions */
-  Bool guarantee(Real x, Real e, Real a);      /* Post conditions */
   Bool R(Real e0, Real e);                     /* Env environment constraints */
   Real f(Real x);                              /* Differential evolution */
   Real T;                                      /* Sampling time */
