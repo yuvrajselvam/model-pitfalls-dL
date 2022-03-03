@@ -1,0 +1,38 @@
+﻿/* Exported from KeYmaera X v4.9.1 */
+
+Theorem "Model Piftalls/Model 4 and Theorem 2"
+Description "Model 4 with ghost ctrl and the conjunct from Theorem 2 to identify ghost ctrl".
+  
+Definitions       /* function symbols cannot change their value */
+  Real aMinS;     /* maximum braking - safety controller */
+  Real aMaxN;     /* maximum acceleration - nominal controller */
+  Real aMinN;     /* maximum braking - nominal controller */
+  Real T;         /* maximum sampling time */
+End.
+    
+ProgramVariables  /* program variables may change their value over time */
+  Real x;         /* position of the ego car */
+  Real v;         /* velocity of the ego car */
+  Real a;         /* acceleration of the ego car */
+  Real xCrit;     /* critical position, xCrit */
+  Real tau;       /* clock variable */
+End.
+
+
+Problem           /* differential dynamic logic formula */ 
+    x<=xCrit & aMinN >0 & aMaxN>0 & T>0
+ -> 
+    [
+      {
+        xCrit:=*;?(v^2<=2*aMinN*(xCrit-x)); /*env*/                                
+        a:=*; ?(-aMinN<=a & a<=aMaxN & v^2 > 2*aMinN*(v*T+aMaxN*T*T*0.5)); /*sys */ 
+        tau := 0; {x'=v, v'=a, tau'=1 & v>=0 & tau<=T} /* plant */
+      }
+    ] (x<=xCrit) 
+End.
+
+Tactic "Proof"
+implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE
+End.
+
+End.

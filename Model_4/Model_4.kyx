@@ -1,0 +1,50 @@
+﻿/* Exported from KeYmaera X v4.9.1 */
+
+Theorem "Model Piftalls/Model 4"
+Description "Example automated driving controller with ghost ctrl. Proof tactic scripted with zeta1.".
+  
+Definitions       /* function symbols cannot change their value */
+  Real aMinS;     /* maximum braking - safety controller */
+  Real aMaxN;     /* maximum acceleration - nominal controller */
+  Real aMinN;     /* maximum braking - nominal controller */
+  Real T;         /* sampling time */
+End.
+    
+ProgramVariables  /* program variables may change their value over time */
+  Real x;         /* position of the ego car */
+  Real v;         /* velocity of the ego car */
+  Real a;         /* acceleration of the ego car */
+  Real xCrit;     /* critical position xCrit */
+  Real tau;       /* clock variable */
+End.
+
+
+Problem           /* differential dynamic logic formula */ 
+    v=0 & x<=xCrit & aMinS>0 & aMaxN>0 & aMinN>0 & aMinS>aMinN & T>0 /* init */
+ -> 
+    [
+      {
+        xCrit:=*; ?(v^2<=2*aMinN*(xCrit-x)); /* env */
+        a:=*; ?(-aMinN<=a & a<=aMaxN & v^2 > 2*aMinN*(v*T+aMaxN*T*T*0.5));  /* sys */                                                
+        {                                   /* ctrl */
+            {?!(xCrit - x >= (v*T + aMaxN*T*T*0.5)); a:=-aMinS;} 
+         ++ 
+            {?(xCrit - x >= (v*T + aMaxN*T*T*0.5));}
+        }
+        tau := 0; {x'=v, v'=a, tau'=1 & v>=0 & tau<=T}  /* plant */
+      }*
+    ]  (x<=xCrit) /* guarantee */
+End.
+
+Tactic "Proof with loop invariant zeta1"
+implyR(1) ; loop("x<=xCrit", 1) ; <(
+  id,
+  id,
+  composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; choiceb(1) ; andR(1) ; <(
+    composeb(1) ; testb(1) ; implyR(1) ; assignb(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE,
+    testb(1) ; implyR(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE
+    )
+  )
+End.
+
+End.
