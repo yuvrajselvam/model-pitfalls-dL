@@ -1,6 +1,6 @@
-﻿/* Exported from KeYmaera X v4.9.1 */
+﻿/* Exported from KeYmaera X v4.9.9 */
 
-Theorem "Model Piftalls/Model 4 and Theorem 2"
+Theorem "Model Pitfalls/Model 4 and Theorem 2"
 Description "Model 4 with ghost ctrl and the conjunct from Theorem 2 to identify ghost ctrl".
   
 Definitions       /* function symbols cannot change their value */
@@ -32,7 +32,23 @@ Problem           /* differential dynamic logic formula */
 End.
 
 Tactic "Proof"
-implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE
+implyR('R=="x<=xCrit&aMinN()>0&aMaxN()>0&T()>0->[xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+composeb('R=="[xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+randomb('R=="[xCrit:=*;][?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+allR('R=="\forall xCrit [?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+composeb('R=="[?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+testb('R=="[?v^2<=2*aMinN()*(xCrit-x);][a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+implyR('R=="v^2<=2*aMinN()*(xCrit-x)->[a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+composeb('R=="[a:=*;?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+randomb('R=="[a:=*;][?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+allR('R=="\forall a [?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+composeb('R=="[?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+testb('R=="[?-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5);][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+implyR('R=="-aMinN()<=a&a<=aMaxN()&v^2>2*aMinN()*(v*T()+aMaxN()*T()*T()*0.5)->[tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+composeb('R=="[tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+assignb('R=="[tau:=0;][{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+solve('R=="[{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+QE
 End.
 
 End.

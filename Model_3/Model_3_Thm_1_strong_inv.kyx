@@ -1,6 +1,6 @@
-﻿/* Exported from KeYmaera X v4.9.1 */
+﻿/* Exported from KeYmaera X v4.9.9 */
 
-Theorem "Model Piftalls/Model 3 and Theorem 1 with strong invariant"
+Theorem "Model Pitfalls/Model 3 and Theorem 1 with strong invariant"
 Description "Model 3 with cheating ctrl and the conjunct from Theorem 1 to identify cheating ctrl".
 
 Definitions       /* function symbols cannot change their value */
@@ -16,15 +16,28 @@ ProgramVariables   /* program variables may change their value over time */
 End.
 
 
-Problem /* we show that rho is valid with strong invariant */
-    \forall x,v,xCrit,xCritNext(v^2<=2*aMinN*(xCrit-x) & xCrit<=xCritNext & aMinN >0 -> <{xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}>(xCrit=xCritNext))
+Problem /* we show that rho is valid for Model 3 with strong invariant, thereby confirming it is not susceptible to Problem 1 */ 
+        /* we add aMinN >0 as a premise since the contextual soundness for definitions from Model 3 cannot be carried over here */
+        /* Note that aMinN >0 can be a part of the invariant and all results are still valid */ 
+    (\forall x,v,xCrit,xCritNext(v^2<=2*aMinN*(xCrit-x) & aMinN > 0 & xCrit<=xCritNext -> <{xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}>(xCrit=xCritNext)))
 End.
 
 Tactic "Proof"
-allR(1) ; allR(1) ; allR(1) ; allR(1) ; implyR(1) ; composed(1) ; randomd(1) ; existsR("xCritNext", 'R) ; testd(1) ; andR(1) ; <(
-  QE,
-  QE
-  )
+allR('R=="\forall xCritNext \forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&aMinN()>0&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+allR('R=="\forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&aMinN()>0&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+allR('R=="\forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&aMinN()>0&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+allR('R=="\forall x (v^2<=2*aMinN()*(xCrit-x)&aMinN()>0&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+implyR('R=="v^2<=2*aMinN()*(xCrit-x)&aMinN()>0&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+composed('R=="<xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+randomd('R=="<xCrit:=*;><?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+existsR("xCritNext", 'R=="\exists xCrit <?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+testd('R=="<?v^2<=2*aMinN()*(xCritNext-x);>xCritNext=xCritNext");
+andR('R=="v^2<=2*aMinN()*(xCritNext-x)&xCritNext=xCritNext"); <(
+  "v^2<=2*aMinN()*(xCritNext-x)":
+    QE,
+  "xCritNext=xCritNext":
+    QE
+)
 End.
 
 End.

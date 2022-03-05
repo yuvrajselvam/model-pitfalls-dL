@@ -1,6 +1,6 @@
-﻿/* Exported from KeYmaera X v4.9.1 */
+﻿/* Exported from KeYmaera X v4.9.9 */
 
-Theorem "Model Piftalls/Model 3 with weak invariant"
+Theorem "Model Pitfalls/Model 3 with weak invariant"
 Description "Example automated driving controller with cheating ctrl. Proof tactic scripted with weak invariant.".
   
 Definitions       /* function symbols cannot change their value */
@@ -37,14 +37,46 @@ Problem           /* differential dynamic logic formula */
 End.
 
 Tactic "Proof with loop invariant zeta1"
-implyR(1) ; loop("x<=xCrit", 1) ; <(
-  id,
-  id,
-  composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; randomb(1) ; allR(1) ; composeb(1) ; testb(1) ; implyR(1) ; composeb(1) ; choiceb(1) ; andR(1) ; <(
-    composeb(1) ; testb(1) ; implyR(1) ; assignb(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE,
-    testb(1) ; implyR(1) ; composeb(1) ; assignb(1) ; solve(1) ; QE
+implyR('R=="v=0&x<=xCrit&aMinS()>0&aMaxN()>0&aMinN()>0&aMinS()>aMinN()&T()>0->[{xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}}*]x<=xCrit");
+loop("x<=xCrit", 'R=="[{xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}}*]x<=xCrit"); <(
+  "Init":
+    id,
+  "Post":
+    id,
+  "Step":
+    composeb('R=="[xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    randomb('R=="[xCrit:=*;][?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    allR('R=="\forall xCrit [?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    composeb('R=="[?v^2<=2*aMinN()*(xCrit-x);a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    testb('R=="[?v^2<=2*aMinN()*(xCrit-x);][a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    implyR('R=="v^2<=2*aMinN()*(xCrit-x)->[a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    composeb('R=="[a:=*;?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    randomb('R=="[a:=*;][?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    allR('R=="\forall a [?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    composeb('R=="[?-aMinN()<=a&a<=aMaxN();{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    testb('R=="[?-aMinN()<=a&a<=aMaxN();][{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    implyR('R=="-aMinN()<=a&a<=aMaxN()->[{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    composeb('R=="[{?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;}tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    choiceb('R=="[?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();++?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+    andR('R=="[?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit&[?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit"); <(
+      "[?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit":
+        composeb('R=="[?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        testb('R=="[?!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;][a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        implyR('R=="!xCrit-x>=v*T()+aMaxN()*T()*T()*0.5->[a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        assignb('R=="[a:=-aMinS();][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        composeb('R=="[tau:=0;{x'=v,v'=-aMinS(),tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        assignb('R=="[tau:=0;][{x'=v,v'=-aMinS(),tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        solve('R=="[{x'=v,v'=-aMinS(),tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        QE,
+      "[?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit":
+        testb('R=="[?xCrit-x>=v*T()+aMaxN()*T()*T()*0.5;][tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        implyR('R=="xCrit-x>=v*T()+aMaxN()*T()*T()*0.5->[tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        composeb('R=="[tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        assignb('R=="[tau:=0;][{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        solve('R=="[{x'=v,v'=a,tau'=1&v>=0&tau<=T()}]x<=xCrit");
+        QE
     )
-  )
+)
 End.
 
 End.

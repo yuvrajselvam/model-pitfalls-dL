@@ -1,6 +1,6 @@
-﻿/* Exported from KeYmaera X v4.9.1 */
+﻿/* Exported from KeYmaera X v4.9.9 */
 
-Theorem "Model Piftalls/Model 3 and Theorem 1 with weak invariant"
+Theorem "Model Pitfalls/Model 3 and Theorem 1 with weak invariant"
 Description "Model 3 with cheating ctrl and the conjunct from Theorem 1 to identify cheating ctrl".
 
 Definitions       /* function symbols cannot change their value */
@@ -20,8 +20,24 @@ Problem /* we show that !rho is valid for Model 3, thereby confirming Model 3 is
     \exists x,v,xCrit,xCritNext(!(x<=xCrit & xCrit<=xCritNext -> <{xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}>(xCrit=xCritNext)))
 End.
 
-Tactic "Automated Proof"
-auto
+Tactic "Proof"
+existsR("0", 'R=="\exists xCritNext \exists xCrit \exists v \exists x (!(x<=xCrit&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext))");
+existsR("0", 'R=="\exists xCrit \exists v \exists x (!(x<=xCrit&xCrit<=0-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=0))");
+existsR("1", 'R=="\exists v \exists x (!(x<=0&0<=0-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=0))");
+existsR("0", 'R=="\exists x (!(x<=0&0<=0-><xCrit:=*;?1^2<=2*aMinN()*(xCrit-x);>xCrit=0))");
+notImply('R=="!(0<=0&0<=0-><xCrit:=*;?1^2<=2*aMinN()*(xCrit-0);>xCrit=0)");
+andR('R=="(0<=0&0<=0)&!<xCrit:=*;?1^2<=2*aMinN()*(xCrit-0);>xCrit=0"); <(
+  "0<=0&0<=0":
+    QE,
+  "!<xCrit:=*;?1^2<=2*aMinN()*(xCrit-0);>xCrit=0":
+    notDiamond('R=="!<xCrit:=*;?1^2<=2*aMinN()*(xCrit-0);>xCrit=0");
+    composeb('R=="[xCrit:=*;?1^2<=2*aMinN()*(xCrit-0);](!xCrit=0)");
+    randomb('R=="[xCrit:=*;][?1^2<=2*aMinN()*(xCrit-0);](!xCrit=0)");
+    allR('R=="\forall xCrit [?1^2<=2*aMinN()*(xCrit-0);](!xCrit=0)");
+    testb('R=="[?1^2<=2*aMinN()*(xCrit-0);](!xCrit=0)");
+    implyR('R=="1^2<=2*aMinN()*(xCrit-0)->!xCrit=0");
+    QE
+)
 End.
 
 End.
