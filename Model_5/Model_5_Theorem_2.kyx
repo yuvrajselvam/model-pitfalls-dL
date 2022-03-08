@@ -1,0 +1,110 @@
+﻿/* Exported from KeYmaera X v4.9.9 */
+
+Theorem "Model Pitfalls/Model 5 and Theorem 2"
+Description "Model 5 with correct env, sys, ctrl and the conjunct from Theorem 2 to identify ghost ctrl".
+  
+Definitions       /* function symbols cannot change their value */
+  Real aMinS;     /* maximum braking - safety controller */
+  Real aMinN;     /* maximum braking - nominal controller */
+  Real aMaxN;     /* maximum acceleration - nominal controller */
+  Real T;         /* maximum sampling time */
+  
+  HP env   ::= {xCrit:=*;?(v^2<=2*aMinN*(xCrit-x));}; /*env*/ 
+  HP sys   ::= {a:=*; ?(-aMinN<=a & a<=aMaxN);};       /*sys */
+  HP plant ::= {tau := 0; {x'=v, v'=a, tau'=1 & v>=0 & tau<=T}}; /* plant */
+   
+  Bool zeta(Real x, Real v, Real xCrit, Real a) <-> (v^2<=2*a*(xCrit-x));   /* loop invariant */
+  Bool zetaIterate(Real x, Real v, Real xCrit, Real a) <-> (
+                                                                ((v+a*T>=0) -> (v+a*T)^2 <= 2*aMinN*(xCrit-x-(v*T)-(a*T*T*0.5))) &
+                                                                ((v+a*T<0)  -> (v)^2 <= 2*aMinN*(xCrit-x))
+                                                            );  /* parameterized loop invariant after one iteration of T duration */
+End.
+    
+ProgramVariables  /* program variables may change their value over time */
+  Real x;         /* position of the ego car */
+  Real v;         /* velocity of the ego car */
+  Real a;         /* acceleration of the ego car */
+  Real xCrit;     /* critical position, xCrit */
+  Real tau;       /* clock variable */
+  Real xCritNext; /* next critical position */
+
+
+End.
+
+
+Problem           /* differential dynamic logic formula */ 
+T>0 & v>=0 & aMinN>0 & aMaxN>0 & aMinS>0 & aMinS>aMinN
+-> 
+(   /* Environment respects the desired evolution of constraints */
+    \forall x, v, xCrit, xCritNext ((zeta(x,v,xCrit,aMinN) & xCrit<=xCritNext) -> <env;> (xCrit = xCritNext)) 
+    &
+    (
+        \exists x \exists v \exists xCritNext \exists xCrit(
+                zeta(x,v,xCrit,aMinN) & xCrit<=xCritNext & <sys;> (!zetaIterate(x, v, xCrit, a))  /* There exists one execution of Sys that breaks the invariant */
+            &   \forall a (!zetaIterate(x, v, xCrit, a) -> <plant;> !zeta(x,v,xCrit,aMinN))
+                /* If there is an action that does not maintain the invariant in one step, then there is some plant evolution that does not fulfill the invariant. */
+            )
+    )
+) 
+End.
+
+Tactic "Scripted proof with witness for existsR"
+expandAllDefs;
+implyR('R=="T()>0&v>=0&aMinN()>0&aMaxN()>0&aMinS()>0&aMinS()>aMinN()->\forall xCritNext \forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)&\exists x \exists v \exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))-><tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))");
+andR('R=="\forall xCritNext \forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)&\exists x \exists v \exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))-><tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))"); <(
+  "\forall xCritNext \forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)":
+    allR('R=="\forall xCritNext \forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+    allR('R=="\forall xCrit \forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+    allR('R=="\forall v \forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+    allR('R=="\forall x (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext)");
+    implyR('R=="v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext-><xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+    composed('R=="<xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+    randomd('R=="<xCrit:=*;><?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+    existsR("xCritNext", 'R=="\exists xCrit <?v^2<=2*aMinN()*(xCrit-x);>xCrit=xCritNext");
+    testd('R=="<?v^2<=2*aMinN()*(xCritNext-x);>xCritNext=xCritNext");
+    QE,
+  "\exists x \exists v \exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))-><tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))":
+    existsR("x0", 'R=="\exists x \exists v \exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))-><tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))");
+    existsR("aMinN()*T()", 'R=="\exists v \exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x0)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))))");
+    existsR("x0+0.5*aMinN()*T()*T()", 'R=="\exists xCritNext \exists xCrit (v^2<=2*aMinN()*(xCrit-x0)&xCrit<=xCritNext&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))))");
+    existsR("x0+0.5*aMinN()*T()*T()", 'R=="\exists xCrit (v^2<=2*aMinN()*(xCrit-x0)&xCrit<=x0+0.5*aMinN()*T()*T()&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))))");
+    andR('R=="v^2<=2*aMinN()*(xCrit-x0)&xCrit<=x0+0.5*aMinN()*T()*T()&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))"); <(
+      "v^2<=2*aMinN()*(xCrit-x0)":
+        QE,
+      "xCrit<=x0+0.5*aMinN()*T()*T()&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))":
+        andR('R=="xCrit<=x0+0.5*aMinN()*T()*T()&<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))"); <(
+          "xCrit<=x0+0.5*aMinN()*T()*T()":
+            QE,
+          "<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))":
+            composed('R=="#<a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))#&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))");
+            randomd('R=="#<a:=*;><?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0))))#&\forall a (!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x0-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))");
+            allL2R('L=="v=aMinN()*T()");
+            allL2R('L=="xCrit=x0+0.5*aMinN()*T()*T()");
+            andR('R=="\exists a <?-aMinN()<=a&a<=aMaxN();>(!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))))&\forall a (!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))"); <(
+              "\exists a <?-aMinN()<=a&a<=aMaxN();>(!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))))":
+                existsR("aMaxN()", 'R=="\exists a <?-aMinN()<=a&a<=aMaxN();>(!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))))");
+                testd('R=="<?-aMinN()<=aMaxN()&aMaxN()<=aMaxN();>(!((aMinN()*T()+aMaxN()*T()>=0->(aMinN()*T()+aMaxN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-aMaxN()*T()*T()*0.5))&(aMinN()*T()+aMaxN()*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))))");
+                andR('R=="(-aMinN()<=aMaxN()&aMaxN()<=aMaxN())&!((aMinN()*T()+aMaxN()*T()>=0->(aMinN()*T()+aMaxN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-aMaxN()*T()*T()*0.5))&(aMinN()*T()+aMaxN()*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))"); <(
+                  "-aMinN()<=aMaxN()&aMaxN()<=aMaxN()":
+                    QE,
+                  "!((aMinN()*T()+aMaxN()*T()>=0->(aMinN()*T()+aMaxN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-aMaxN()*T()*T()*0.5))&(aMinN()*T()+aMaxN()*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))":
+                    notAnd('R=="!((aMinN()*T()+aMaxN()*T()>=0->(aMinN()*T()+aMaxN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-aMaxN()*T()*T()*0.5))&(aMinN()*T()+aMaxN()*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))");
+                    QE
+                ),
+              "\forall a (!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))":
+                allR('R=="\forall a (!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0)))");
+                notAnd('R=="#!((aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))&(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0)))#-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                notImply('R=="#!(aMinN()*T()+a*T()>=0->(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5))#|!(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                notLessEqual('R=="aMinN()*T()+a*T()>=0&#!(aMinN()*T()+a*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5)#|!(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                implyR('R=="aMinN()*T()+a*T()>=0&(aMinN()*T()+a*T())^2>2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0-aMinN()*T()*T()-a*T()*T()*0.5)|!(aMinN()*T()+a*T() < 0->(aMinN()*T())^2<=2*aMinN()*(x0+0.5*aMinN()*T()*T()-x0))-><tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                composed('R=="<tau:=0;{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                assignd('R=="<tau:=0;><{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                solve('R=="<{x0'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x0))");
+                QE
+            )
+        )
+    )
+)
+End.
+
+End.
