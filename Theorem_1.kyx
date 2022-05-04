@@ -1,85 +1,92 @@
-ArchiveEntry "Theorem 1"
-Description "The loop invariant implies the environment assumptions. Now it is possible to prove that the environment assumptions are not needed in the HP.".
+﻿/* Exported from KeYmaera X v4.9.9 */
+
+Theorem "Model Pitfalls/Theorem 1"
+Description "The loop invariant implies the environment assumptions. Theorem 1 to identify cheating controllers.".
 
 Definitions
-  Bool Zeta(Real x, Real e, Real a);           /* Loop invariant */
-  Bool Env(Real x, Real e, Real a);            /* Environment assumptions */
-  Bool Sys(Real x, Real e, Real a);            /* System assumptions */
-  Bool Ctrl(Real x, Real e, Real a);           /* Control law */
-  Bool Plant(Real x, Real e, Real a, Real t);  /* Evolution domain constraint */
+  Bool Zeta(Real s, Real e, Real a);           /* Loop invariant */
+  Bool Env(Real s, Real e, Real a);            /* Environment assumptions */
+  Bool Sys(Real s, Real e, Real a);            /* System assumptions */ /* sys = aux */
+  Bool Ctrl(Real s, Real e, Real a);           /* Control law */
+  Bool Plant(Real s, Real e, Real a, Real t);  /* Evolution domain constraint */
   Bool R(Real e0, Real e);                     /* Env environment constraints */
-  Real f(Real x);                              /* Differential evolution */
+  Real f(Real s);                              /* Differential evolution */
   Real T;                                      /* Sampling time */
-  HP plant ::= {t:=0; {x' = f(x), t' = 1 & (Plant(x, e, a, t) & t <= T)}};
+  HP plant ::= {t:=0; {s' = f(s), t' = 1 & (Plant(s, e, a, t) & t <= T)}};
 End.
 
 ProgramVariables
-  Real x, e, e0, a;   /* The state. */
+  Real s, e, e0, a;   
 End.
 
-Problem
-\forall x \forall e0 \exists a (
-    (Zeta(x, e0, a) -> (
-        \forall e (R(e0, e) -> <{e0:=*; ?Env(x, e0, a);}> (e0 = e))
+Problem         /* the loop invariant zeta is parameterized with a in this formulation. In Theorem 1, the generalization is left out for brevity.*/
+\forall s \forall e0 \exists a (
+    (Zeta(s, e0, a) -> (
+        \forall e (R(e0, e) -> <{e0:=*; ?Env(s, e0, a);}> (e0 = e))
         )
     ) /* Loop invariant implies all desired environment conditions */
     & (
-        Zeta(x, e0, a) -> [{e:=*; ?Env(x, e, a); a:=*; ?Sys(x, e, a); a:=*; ?Ctrl(x, e, a); plant;}] (\exists a Zeta(x, e, a))
-        ) /* Loop invariant implies [Env, Ctrl] Zeta */
+        Zeta(s, e0, a) -> [{e:=*; ?Env(s, e, a); a:=*; ?Sys(s, e, a); a:=*; ?Ctrl(s, e, a); plant;}] (\exists a Zeta(s, e, a))
+        ) /* Loop invariant implies [env; sys; ctrl; plant] Zeta */
     )
 ->
-\forall x \forall e0 (
+\forall s \forall e0 (
     (
-        \forall e \exists a (Zeta(x, e0, a) & R(e0, e) -> [{a:=*; ?Sys(x, e, a); a:=*; ?Ctrl(x, e, a);  plant;}] (\exists a Zeta(x, e, a)))
-        ) /* Loop invariant and desired constraints imply [ctrl] Zeta */
+        \forall e \exists a (Zeta(s, e0, a) & R(e0, e) -> [{a:=*; ?Sys(s, e, a); a:=*; ?Ctrl(s, e, a);  plant;}] (\exists a Zeta(s, e, a)))
+        ) /* Loop invariant and desired constraints imply [ sys; ctrl; plant] Zeta */
     )
 End.
 
 Tactic "Theorem 1: Proof"
-implyR('R=="\forall x \forall e0 \exists a ((Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e))&(Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)))->\forall x \forall e0 \forall e \exists a (Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-allR('R=="\forall x \forall e0 \forall e \exists a (Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-allR('R=="\forall e0 \forall e \exists a (Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-allR('R=="\forall e \exists a (Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-allL('L=="\forall x \forall e0 \exists a ((Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e))&(Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)))");
-allL('L=="\forall e0 \exists a ((Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e))&(Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)))");
-existsL('L=="\exists a ((Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e))&(Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)))");
-existsR('R=="\exists a (Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-andL('L=="(Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e))&(Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a))");
-implyR('R=="Zeta(x,e0,a)&R(e0,e)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)");
-andL('L=="Zeta(x,e0,a)&R(e0,e)");
-implyL('L=="Zeta(x,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e)"); <(
-  "Zeta(x,e0,a)":
+todo
+End.
+
+Tactic "Model Pitfalls/Theorem 1 from tactic"
+implyR('R=="\forall s \forall e0 \exists a ((Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)))->\forall s \forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+allR('R=="\forall s \forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+allR('R=="\forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+allR('R=="\forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+allL('L=="\forall s \forall e0 \exists a ((Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)))");
+allL('L=="\forall e0 \exists a ((Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)))");
+existsL('L=="\exists a ((Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)))");
+existsR('R=="\exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+andL('L=="(Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
+implyR('R=="Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)");
+andL('L=="Zeta(s,e0,a)&R(e0,e)");
+implyL('L=="Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e)"); <(
+  "Zeta(s,e0,a)":
     id,
-  "\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e)":
-    implyL('L=="Zeta(x,e0,a)->[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)"); <(
-      "Zeta(x,e0,a)":
+  "\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e)":
+    implyL('L=="Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)"); <(
+      "Zeta(s,e0,a)":
         id,
-      "[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);plant{|^@|};]\exists a Zeta(x,e,a)":
+      "[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)":
         expand "plant";
-        allL('L=="\forall e (R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e)");
-        implyL('L=="R(e0,e)-><e0:=*;?Env(x,e0,a);>e0=e"); <(
+        allL('L=="\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e)");
+        implyL('L=="R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e"); <(
           "R(e0,e)":
             id,
-          "<e0:=*;?Env(x,e0,a);>e0=e":
-            composed('L=="<e0:=*;?Env(x,e0,a);>e0=e");
-            randomd('L=="<e0:=*;><?Env(x,e0,a);>e0=e");
-            existsL('L=="\exists e0 <?Env(x,e0,a);>e0=e");
-            testd('L=="<?Env(x,e0,a);>e0=e");
-            andL('L=="Env(x,e0,a)&e0=e");
-            composeb('L=="[e:=*;?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)");
-            randomb('L=="[e:=*;][?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)");
-            allL('L=="\forall e [?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)");
-            composeb('L=="[?Env(x,e,a);a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)");
-            testb('L=="[?Env(x,e,a);][a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)");
-            implyL('L=="Env(x,e,a)->[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)"); <(
-              "Env(x,e,a)":
+          "<e0:=*;?Env(s,e0,a);>e0=e":
+            composed('L=="<e0:=*;?Env(s,e0,a);>e0=e");
+            randomd('L=="<e0:=*;><?Env(s,e0,a);>e0=e");
+            existsL('L=="\exists e0 <?Env(s,e0,a);>e0=e");
+            testd('L=="<?Env(s,e0,a);>e0=e");
+            andL('L=="Env(s,e0,a)&e0=e");
+            composeb('L=="[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)");
+            randomb('L=="[e:=*;][?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)");
+            allL('L=="\forall e [?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)");
+            composeb('L=="[?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)");
+            testb('L=="[?Env(s,e,a);][a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)");
+            implyL('L=="Env(s,e,a)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)"); <(
+              "Env(s,e,a)":
                 allL2R('L=="e0=e");
                 id,
-              "[a:=*;?Sys(x,e,a);a:=*;?Ctrl(x,e,a);t:=0;{x'=f(x),t'=1&Plant(x,e,a,t)&t<=T()}]\exists a Zeta(x,e,a)":
+              "[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}]\exists a Zeta(s,e,a)":
                 id
             )
         )
     )
 )
 End.
+
 End.
