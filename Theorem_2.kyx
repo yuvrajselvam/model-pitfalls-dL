@@ -30,10 +30,6 @@ Problem
 End.
 
 Tactic "Theorem 2: Proof with witness for existsR"
-todo
-End.
-
-Tactic "Model Pitfalls/Theorem 2 from tactic"
 expandAllDefs;
 implyR('R=="\exists a1 \exists s \exists e (Zeta(s,e,a1)&<e:=*;?Env(s,e,a1);a:=*;?Sys(s,e,a);>(!Zeta(s,e,a)&<t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}>(!Zeta(s,e,a1))))->\exists a1 \exists e \exists s (Zeta(s,e,a1)&<e:=*;?Env(s,e,a1);a:=*;?Sys(s,e,a);t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}>(!Zeta(s,e,a1)))");
 existsL('L=="\exists a1 \exists s \exists e (Zeta(s,e,a1)&<e:=*;?Env(s,e,a1);a:=*;?Sys(s,e,a);>(!Zeta(s,e,a)&<t:=0;{s'=f(s),t'=1&Plant(s,e,a,t)&t<=T()}>(!Zeta(s,e,a1))))");
