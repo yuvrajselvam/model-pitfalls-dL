@@ -38,10 +38,6 @@ Problem         /* the loop invariant zeta is parameterized with a in this formu
 End.
 
 Tactic "Theorem 1: Proof"
-todo
-End.
-
-Tactic "Model Pitfalls/Theorem 1 from tactic"
 implyR('R=="\forall s \forall e0 \exists a ((Zeta(s,e0,a)->\forall e (R(e0,e)-><e0:=*;?Env(s,e0,a);>e0=e))&(Zeta(s,e0,a)->[e:=*;?Env(s,e,a);a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a)))->\forall s \forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
 allR('R=="\forall s \forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");
 allR('R=="\forall e0 \forall e \exists a (Zeta(s,e0,a)&R(e0,e)->[a:=*;?Sys(s,e,a);a:=*;?Ctrl(s,e,a);plant{|^@|};]\exists a Zeta(s,e,a))");

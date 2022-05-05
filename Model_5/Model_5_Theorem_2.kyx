@@ -40,10 +40,6 @@ T>0 & v>=0 & aMinN>0 & aMaxN>0 & aMinS>0 & aMinS>aMinN
 End.
 
 Tactic "Scripted proof with witness for existsR"
-todo
-End.
-
-Tactic "Model Pitfalls/Model 5 and Theorem 2 from tactic"
 expandAllDefs;
 implyR('R=="T()>0&v>=0&aMinN()>0&aMaxN()>0&aMinS()>0&aMinS()>aMinN()->\exists x \exists v \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&<{xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);}a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))&<tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))");
 existsR("x0", 'R=="\exists x \exists v \exists xCrit (v^2<=2*aMinN()*(xCrit-x)&<{xCrit:=*;?v^2<=2*aMinN()*(xCrit-x);}a:=*;?-aMinN()<=a&a<=aMaxN();>(!((v+a*T()>=0->(v+a*T())^2<=2*aMinN()*(xCrit-x-v*T()-a*T()*T()*0.5))&(v+a*T() < 0->v^2<=2*aMinN()*(xCrit-x)))&<tau:=0;{x'=v,v'=a,tau'=1&v>=0&tau<=T()}>(!v^2<=2*aMinN()*(xCrit-x))))");
