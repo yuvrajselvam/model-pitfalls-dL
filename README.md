@@ -1,4 +1,4 @@
-# model-pitfalls-dl
+# model-pitfalls-dL
 
 Supplementary hybrid programs and KeYmaeara X proofs for the paper titled 'On How to Not Prove Faulty Controllers Safe in Differential Dynamic Logic' by [Yuvaraj Selvaraj](https://www.chalmers.se/en/staff/Pages/yuvaraj.aspx), [Jonas Krook](https://www.chalmers.se/en/Staff/Pages/krookj.aspx), [Wolfgang Ahrendt](http://www.cse.chalmers.se/~ahrendt/), and [Martin Fabian](https://www.chalmers.se/en/staff/Pages/martin-fabian.aspx).
 
