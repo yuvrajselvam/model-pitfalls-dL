@@ -1,0 +1,175 @@
+﻿/* Model or tactics did not reparse, printed verbatim, needs manual editing */
+
+/* Input content */
+ArchiveEntry "Model Pitfalls/ETCS model and Theorem 1"
+
+Definitions
+  Real ep;
+  Real b;
+  Real A;
+  
+  Bool Assumptions(Real v, Real d) <-> v>=0 & d>=0 & b>0;
+  Bool Controllable(Real m, Real z, Real v, Real d) <-> (                             /* Controllability constraint C */
+    v^2-d^2 <= 2*b*(m-z) & Assumptions(v,d)
+  );
+  Bool M(Real d, Real do, Real m, Real mo) <-> (
+    do^2 - d^2 <= 2*b*(m-mo) & do >= 0 & d >= 0
+  );
+ 
+  Bool safe(Real m, Real z, Real v, Real d) <-> (
+    z >= m -> v <= d      /* train 'z' drives past end of movement authority 'm' only with appropriate speed 'v'<='d' */
+  );
+  Real emOn  = 1;
+  Real emOff = 0;
+  
+  Real brakeDist(Real v, Real d) = ((v^2-d^2)/(2*b));         /* Train stopping distance from speed v with braking force b */
+  Real accCompensation(Real v) = (((A/b) + 1)*((A/2)*ep^2 + ep*v));     /* Distance to compensate speed increase. */
+  Real SB(Real v, Real d) = (brakeDist(v,d) + accCompensation(v));   /* Distance needed to brake safely when accelerating once */
+
+  Bool loopInv(Real m, Real z, Real v, Real d) <-> (m-z >= brakeDist(v,d) & d>=0);  /* loop invariant: maintain sufficient braking distance */
+  
+  HP spd ::= {
+        ?v <= vdes; a:=*; ?-b<=a&a<=A;
+     ++ ?v >= vdes; a:=*; ?-b<=a&a<=0;
+  };
+  
+  HP atp ::= {
+    if (m-z <= sb | em = emOn) { a := -b; }
+  };
+  
+  HP drive ::= {
+    t := 0;                                                  /* reset control cycle timer */
+    {z'=v, v'=a, t'=1  & v >= 0 & t <= ep}                   /* drive (not backwards v>=0)
+                                                                for at most ep time (t<=ep) until next controller run */
+  };
+
+  HP atpr ::= {
+    sb := SB(v, d);
+    atp;
+  };
+
+  HP rbcr ::= {
+       em := emOn;
+    ++ mo := m; m := *; vdes := *; ?vdes >= 0; do := d; d :=*; ?M(d,do,m,mo);
+  };
+End.
+
+ProgramVariables
+  Real vdes;
+  Real sb;
+  Real mo;
+  Real t;
+  Real a;
+  Real v;
+  Real z;
+  Real m;
+  Real d;
+  Real do;
+  Real em;
+  Real mNext;
+  Real vdesNext;
+  Real dNext;
+End.
+
+/* Original problem 
+Problem
+Controllable(m,z,v,d) & em = emOff & A>=0 & ep>=0
+  ->
+  [{
+       rbcr;
+    ++ spd; atpr; drive;
+   }*@invariant(loopInv(m,z,v,d))
+  ]safe(m,z,v,d)
+End.
+*/
+
+Problem /* we show that rho is valid for ETCS model with the used loop invariant, thereby confirming it is not susceptible to Problem 1 */ 
+        /* we add Assumptions as a premise since the contextual soundness for definitions from ETCS model cannot be carried over here */
+    (\forall em,mo,m,mNext,vdes,vdesNext,d,dNext (loopInv(m,z,v,d) & Assumptions(v,d) & m<=mNext -> <rbcr;>(m=mNext)))
+End.
+
+Tactic "Scripted Proof"
+allR('R=="\forall dNext \forall d \forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall d \forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+expandAllDefs;
+implyR('R=="(m-z>=(v^2-d^2)/(2*b())&d>=0)&(v>=0&d>=0&b()>0)&m<=mNext-><em:=1;++mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+choiced('R=="<em:=1;++mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+orR('R=="<em:=1;>m=mNext|<mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+hideR('R=="<em:=1;>m=mNext");
+composed('R=="<mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+assignd('R=="<mo:=m;><m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+composed('R=="<m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+randomd('R=="<m:=*;><vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+existsR("mNext", 'R=="\exists m <vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+composed('R=="<vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+randomd('R=="<vdes:=*;><?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+existsR("0", 'R=="\exists vdes <?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+composed('R=="<?0>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+testd('R=="<?0>=0;><do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+andR('R=="0>=0&<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext"); <(
+  "0>=0":
+    QE,
+  "<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext":
+    composed('R=="<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    assignd('R=="<do:=d;><d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    composed('R=="<d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    randomd('R=="<d:=*;><?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    existsR('R=="\exists d <?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    testd('R=="<?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    QE
+)
+
+End.
+
+End.
+/* End input content */
+
+/* Printed tactics */
+Tactic "Scripted Proof"
+todo
+End.
+Tactic "Model Pitfalls/ETCS model and Theorem 1 from tactic"
+allR('R=="\forall dNext \forall d \forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall d \forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall vdesNext \forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall vdes \forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall mNext \forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall m \forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall mo \forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+allR('R=="\forall em (loopInv(m,z,v,d)&Assumptions(v,d)&m<=mNext-><rbcr{|^@|};>m=mNext)");
+expandAllDefs;
+implyR('R=="(m-z>=(v^2-d^2)/(2*b())&d>=0)&(v>=0&d>=0&b()>0)&m<=mNext-><em:=1;++mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+choiced('R=="<em:=1;++mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+orR('R=="<em:=1;>m=mNext|<mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+hideR('R=="<em:=1;>m=mNext");
+composed('R=="<mo:=m;m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+assignd('R=="<mo:=m;><m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+composed('R=="<m:=*;vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+randomd('R=="<m:=*;><vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+existsR("mNext", 'R=="\exists m <vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(m-mo)&do>=0&d>=0;>m=mNext");
+composed('R=="<vdes:=*;?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+randomd('R=="<vdes:=*;><?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+existsR("0", 'R=="\exists vdes <?vdes>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+composed('R=="<?0>=0;do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+testd('R=="<?0>=0;><do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+andR('R=="0>=0&<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext"); <(
+  "0>=0":
+    QE,
+  "<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext":
+    composed('R=="<do:=d;d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    assignd('R=="<do:=d;><d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    composed('R=="<d:=*;?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    randomd('R=="<d:=*;><?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    existsR('R=="\exists d <?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    testd('R=="<?do^2-d^2<=2*b()*(mNext-mo)&do>=0&d>=0;>mNext=mNext");
+    QE
+)
+End.
+/* End printed tactics */
+
